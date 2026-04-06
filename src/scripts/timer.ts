@@ -5,6 +5,8 @@
  * Falls back to a hidden aria-live region for unsupported browsers.
  */
 
+import { Temporal } from "@js-temporal/polyfill";
+
 // --------------------------------------------------------
 // Type augmentation for ariaNotify (not yet in lib.dom.d.ts)
 // --------------------------------------------------------
