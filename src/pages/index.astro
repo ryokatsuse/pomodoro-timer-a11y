@@ -1,0 +1,226 @@
+---
+import "../styles/global.css";
+---
+
+<html lang="ja">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Pomodoro Timer - ariaNotify Demo</title>
+		<meta
+			name="description"
+			content="ARIA Notify APIを使ったアクセシブルなポモドーロタイマー"
+		/>
+	</head>
+	<body
+		class="min-h-screen bg-stone-50 text-stone-900 flex flex-col items-center justify-center p-4"
+	>
+		<a href="#timer-display" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-white focus:px-4 focus:py-2 focus:rounded focus:shadow focus:z-50">
+			タイマーへスキップ
+		</a>
+
+		<main class="w-full max-w-md" role="main" aria-label="ポモドーロタイマー">
+			<h1 class="text-2xl font-bold text-center mb-8">
+				Pomodoro Timer
+			</h1>
+
+			<!-- ariaNotify support banner -->
+			<div
+				id="api-support-banner"
+				class="hidden mb-6 px-4 py-3 rounded-lg text-sm"
+				role="status"
+			>
+			</div>
+
+			<!-- Timer display -->
+			<div
+				id="timer-display"
+				class="text-center mb-8"
+				tabindex="-1"
+			>
+				<output
+					id="timer-output"
+					class="block text-7xl font-mono font-bold tabular-nums tracking-tight"
+					aria-live="off"
+					aria-label="残り時間"
+				>
+					25:00
+				</output>
+				<p
+					id="timer-phase"
+					class="mt-2 text-stone-500 text-sm"
+					aria-live="polite"
+				>
+					準備完了
+				</p>
+			</div>
+
+			<!-- Progress bar -->
+			<div class="mb-8" role="presentation">
+				<div
+					class="h-2 bg-stone-200 rounded-full overflow-hidden"
+					role="progressbar"
+					id="progress-bar"
+					aria-valuenow="0"
+					aria-valuemin="0"
+					aria-valuemax="100"
+					aria-label="タイマー進捗"
+				>
+					<div
+						id="progress-fill"
+						class="h-full bg-rose-500 rounded-full transition-all duration-1000 ease-linear"
+						style="width: 0%"
+					>
+					</div>
+				</div>
+			</div>
+
+			<!-- Preset buttons -->
+			<fieldset class="mb-6">
+				<legend class="text-sm font-medium text-stone-600 mb-3">
+					プリセット
+				</legend>
+				<div class="flex gap-3">
+					<button
+						type="button"
+						class="preset-btn flex-1 px-4 py-3 rounded-lg bg-rose-500 text-white font-medium hover:bg-rose-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500 transition-colors"
+						data-minutes="25"
+						aria-pressed="true"
+					>
+						25分 <span class="block text-xs opacity-80">作業</span>
+					</button>
+					<button
+						type="button"
+						class="preset-btn flex-1 px-4 py-3 rounded-lg bg-stone-200 text-stone-700 font-medium hover:bg-stone-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-500 transition-colors"
+						data-minutes="5"
+						aria-pressed="false"
+					>
+						5分 <span class="block text-xs opacity-80">休憩</span>
+					</button>
+				</div>
+			</fieldset>
+
+			<!-- Custom time input -->
+			<div class="mb-6">
+				<label
+					for="custom-minutes"
+					class="block text-sm font-medium text-stone-600 mb-2"
+				>
+					カスタム時間（分）
+				</label>
+				<div class="flex gap-3">
+					<input
+						type="number"
+						id="custom-minutes"
+						min="1"
+						max="120"
+						value=""
+						placeholder="例: 15"
+						class="flex-1 px-4 py-2 rounded-lg border border-stone-300 bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500"
+						aria-describedby="custom-minutes-hint"
+					/>
+					<button
+						type="button"
+						id="set-custom-btn"
+						class="px-4 py-2 rounded-lg bg-stone-700 text-white font-medium hover:bg-stone-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-500 transition-colors"
+					>
+						設定
+					</button>
+				</div>
+				<p id="custom-minutes-hint" class="mt-1 text-xs text-stone-400">
+					1〜120分の範囲で設定できます
+				</p>
+			</div>
+
+			<!-- Control buttons -->
+			<div class="flex gap-3 mb-8">
+				<button
+					type="button"
+					id="start-btn"
+					class="flex-1 px-6 py-3 rounded-lg bg-emerald-600 text-white font-bold text-lg hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 transition-colors"
+				>
+					スタート
+				</button>
+				<button
+					type="button"
+					id="reset-btn"
+					class="px-6 py-3 rounded-lg bg-stone-200 text-stone-700 font-bold text-lg hover:bg-stone-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-500 transition-colors"
+				>
+					リセット
+				</button>
+			</div>
+
+			<!-- Debug: aria-live toggle -->
+			<fieldset class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+				<legend class="text-sm font-bold text-amber-800 px-1">
+					デバッグ: aria-live テスト
+				</legend>
+				<p class="text-xs text-amber-700 mb-3">
+					タイマー表示の aria-live 属性を変更して、毎秒読み上げがどうなるか比較できます。
+				</p>
+				<div class="flex gap-2 flex-wrap">
+					<button
+						type="button"
+						class="aria-live-toggle px-3 py-1.5 text-sm rounded bg-amber-800 text-white font-medium"
+						data-live-value="off"
+						aria-pressed="true"
+					>
+						off（現在）
+					</button>
+					<button
+						type="button"
+						class="aria-live-toggle px-3 py-1.5 text-sm rounded bg-amber-200 text-amber-800 font-medium"
+						data-live-value="polite"
+						aria-pressed="false"
+					>
+						polite
+					</button>
+					<button
+						type="button"
+						class="aria-live-toggle px-3 py-1.5 text-sm rounded bg-amber-200 text-amber-800 font-medium"
+						data-live-value="assertive"
+						aria-pressed="false"
+					>
+						assertive
+					</button>
+				</div>
+				<p id="current-aria-live" class="mt-2 text-xs text-amber-600 font-mono">
+					aria-live="off"
+				</p>
+			</fieldset>
+
+			<!-- Notification log -->
+			<details class="bg-white rounded-lg border border-stone-200 p-4">
+				<summary class="font-medium text-stone-700 cursor-pointer select-none">
+					通知ログ
+				</summary>
+				<ul
+					id="notification-log"
+					class="mt-3 space-y-1 text-sm text-stone-600 max-h-48 overflow-y-auto"
+					aria-label="通知履歴"
+					role="log"
+					aria-live="polite"
+				>
+				</ul>
+			</details>
+		</main>
+
+		<!-- Fallback live region for browsers without ariaNotify -->
+		<div
+			id="sr-fallback"
+			class="sr-only"
+			aria-live="assertive"
+			aria-atomic="true"
+			role="status"
+		>
+		</div>
+
+		<script>
+			import { initTimer } from "../scripts/timer";
+			initTimer();
+		</script>
+	</body>
+</html>
